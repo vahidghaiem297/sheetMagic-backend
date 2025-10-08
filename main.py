@@ -92,6 +92,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://github.com/vahidghaiem297/SheetMagic.git",
+        "sheetmagic-backend-production.up.railway.app",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ],
