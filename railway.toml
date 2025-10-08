@@ -2,8 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python main.py"
-
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
 [[services]]
 name = "web"
 run = "python main.py --host 0.0.0.0 --port $PORT"
