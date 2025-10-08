@@ -17,9 +17,59 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logger = logging.getLogger(__name__)
-app = FastAPI()
+
+# ایجاد app با تنظیمات کامل
+app = FastAPI(
+    title="SheetMagic API",
+    description="Backend for SheetMagic Excel automation tool",
+    version="1.0.0",
+)
+
+# CORS configuration - اصلاح شده
+# CORS configuration - گسترده‌تر
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://vahidghaiem297.github.io",
+        "https://*.github.io",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
+)
 
 
+# اضافه کردن endpoint اصلی
+@app.get("/")
+async def root():
+    return {
+        "message": "SheetMagic Backend API is running!",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": [
+            "/merge-files/",
+            "/convert-format/",
+            "/remove-duplicates/",
+            "/get-columns/",
+            "/compare-files/",
+            "/clean-data/",
+            "/create-pivot/",
+            "/join-files/",
+        ],
+    }
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "SheetMagic Backend"}
+
+
+# ======= توابع کمکی =======
 def read_file(upload: UploadFile) -> pd.DataFrame:
     fname = (upload.filename or "").lower()
 
@@ -86,21 +136,6 @@ def save_to_excel(data, sheet_name: str = "Sheet1") -> bytes:
     return output.getvalue()
 
 
-# CORS
-# در بخش CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://github.com/vahidghaiem297/SheetMagic.git",
-        "sheetmagic-backend-production.up.railway.app",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Content-Disposition"],
-)
 # ======= Arabic/Persian helpers =======
 _AR_BLOCK = r"\u0600-\u06FF"
 _AR_RE = re.compile(f"[{_AR_BLOCK}]")
@@ -339,6 +374,7 @@ def _reorder_columns(df, is_farsi):
         return df[order + rest_final]
 
 
+# ======= API Endpoints =======
 @app.post("/merge-files/")
 async def merge_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
     try:
@@ -618,7 +654,6 @@ async def compare_files(
                 changes.to_excel(writer, sheet_name="Changed_cells", index=False)
 
             # =================== حالت بدون کلید (مقایسه موقعیتی) ===================
-            # =================== حالت بدون کلید (مقایسه موقعیتی) ===================
             else:
                 # هدف: مقایسه ردیف-به-ردیف صرفاً بر اساس موقعیت، با یکسان‌سازی ستون‌ها و طول‌ها
                 d1 = df1.copy()
@@ -662,7 +697,6 @@ async def compare_files(
                 only1.to_excel(writer, sheet_name="Only_in_file1", index=False)
                 only2.to_excel(writer, sheet_name="Only_in_file2", index=False)
 
-                # 4) تفاوت سلولی برای ردیف‌های هم‌موقعیت
                 # 4) تفاوت سلولی برای ردیف‌های هم‌موقعیت
                 try:
                     # pandas جدید (>=2.1) → فقط future_stack=True
@@ -892,28 +926,6 @@ async def create_pivot(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-
-@app.post("/pivot-table/")
-async def pivot_table(
-    file: UploadFile = File(...),
-    index_column: str = Form(...),
-    value_column: str = Form(...),
-    aggfunc: str = Form("sum"),
-):
-    df = pd.read_excel(file.file)
-    pivot = pd.pivot_table(
-        df, index=index_column, values=value_column, aggfunc=aggfunc
-    ).reset_index()
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        pivot.to_excel(writer, index=False)
-    output.seek(0)
-    return StreamingResponse(
-        output,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=pivot.xlsx"},
-    )
 
 
 @app.post("/join-files/")
