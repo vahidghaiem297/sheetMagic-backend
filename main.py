@@ -91,7 +91,7 @@ def save_to_excel(data, sheet_name: str = "Sheet1") -> bytes:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://github.com/vahidghaiem297/sheetMagic-backend.git",
+        "https://github.com/vahidghaiem297/SheetMagic.git",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ],
