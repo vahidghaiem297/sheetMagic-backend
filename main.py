@@ -1017,6 +1017,77 @@ async def join_files(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+# ایمیل شما - اینجا رو با ایمیل واقعی خودتون جایگزین کنید
+DEVELOPER_EMAIL = "vahidghaiem297@gmail.com"  # جایگزین کنید با ایمیل واقعی شما
+
+@app.post("/submit-feedback")
+async def submit_feedback(
+    rating: int = Form(...),
+    comment: str = Form(...),
+    email: str = Form(None),
+    name: str = Form(None),
+    timestamp: str = Form(None),
+    userAgent: str = Form(None)
+):
+    try:
+        # ایجاد محتوای ایمیل
+        subject = f"📊 بازخورد جدید SheetMagic - امتیاز: {rating}/5"
+        
+        body = f"""
+        بازخورد جدید از کاربر SheetMagic:
+        
+        📈 امتیاز: {rating}/5
+        💬 نظر: {comment}
+        
+        👤 اطلاعات کاربر:
+        - نام: {name or 'ثبت نشده'}
+        - ایمیل: {email or 'ثبت نشده'}
+        - زمان: {timestamp or 'نامشخص'}
+        
+        🌐 اطلاعات مرورگر:
+        {userAgent or 'نامشخص'}
+        
+        --
+        این پیام به صورت خودکار از سیستم نظرسنجی SheetMagic ارسال شده است.
+        """
+        
+        # در اینجا کد ارسال ایمیل رو اضافه می‌کنیم
+        # برای سادگی، فعلاً فقط در کنسول لاگ می‌کنیم
+        print("=" * 50)
+        print("📧 بازخورد جدید دریافت شد!")
+        print(f"📩 ارسال به: {DEVELOPER_EMAIL}")
+        print(f"📋 موضوع: {subject}")
+        print(f"📝 محتوا: {body}")
+        print("=" * 50)
+        
+        # TODO: اینجا می‌تونید از سرویس‌های مثل SendGrid, SMTP، یا ... استفاده کنید
+        # برای نمونه، می‌تونید از smtplib استفاده کنید:
+        """
+        import smtplib
+        from email.mime.text import MIMEText
+        
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = 'noreply@sheetmagic.com'
+        msg['To'] = DEVELOPER_EMAIL
+        
+        # ارسال ایمیل با SMTP
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login('your_email@gmail.com', 'your_password')
+            server.send_message(msg)
+        """
+        
+        return {"success": True, "message": "نظر شما با موفقیت ثبت شد"}
+        
+    except Exception as e:
+        logger.exception("Error submitting feedback")
+        return JSONResponse(
+            status_code=500, 
+            content={"success": False, "error": str(e)}
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     import os
