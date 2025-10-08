@@ -25,7 +25,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS configuration - گسترده‌تر
+# در main.py بخش CORS را به این صورت به‌روزرسانی کنید:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -35,7 +35,8 @@ app.add_middleware(
         "https://*.github.io",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "*"  # برای توسعه - در تولید حذف کنید
+        "https://sheetmagic-backend-production.up.railway.app",
+        "*"  # برای تست - در تولید محدودتر کنید
     ],
     allow_credentials=True,
     allow_methods=["*"],
