@@ -1007,7 +1007,6 @@ async def join_files(
 if __name__ == "__main__":
     import uvicorn
     import os
-    
-    # خواندن PORT از محیط Railway یا استفاده از پیش‌فرض
+
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
